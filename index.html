@@ -5,16 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Site do Bernardo</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding-top: 100px; }
-        .card { border: 2px solid #00ca4e; display: inline-block; padding: 20px; border-radius: 15px; }
-        h1 { color: #00ca4e; }
+        /* Mude o código da cor no 'background' para trocar a cor do fundo */
+        body { font-family: sans-serif; background: #0f172a; color: white; text-align: center; padding-top: 100px; }
+        .card { border: 2px solid #38bdf8; display: inline-block; padding: 30px; border-radius: 15px; background: #1e293b; }
+        /* Mude a cor aqui para trocar a cor do título */
+        h1 { color: #38bdf8; }
+        .botao {
+            background: #38bdf8;
+            color: #0f172a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>🚀 MEU SITE ESTÁ NO AR!</h1>
-        <p>Este site foi feito no VS Code e enviado pelo GitHub.</p>
-        <p>Bernardo, você conseguiu!</p>
+        <h1>🚀 SITE DO BERNARDO</h1>
+        <p>Agora com botão e cores novas!</p>
+        <button class="botao" onclick="alert('Funciona!')">Clique Aqui</button>
     </div>
 </body>
 </html>
