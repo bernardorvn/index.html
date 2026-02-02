@@ -3,30 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Site do Bernardo</title>
+    <title>Meu Site</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Mude o código da cor no 'background' para trocar a cor do fundo */
-        body { font-family: sans-serif; background: #0f172a; color: white; text-align: center; padding-top: 100px; }
-        .card { border: 2px solid #38bdf8; display: inline-block; padding: 30px; border-radius: 15px; background: #1e293b; }
-        /* Mude a cor aqui para trocar a cor do título */
-        h1 { color: #38bdf8; }
+        body {
+            font-family: 'Inter' sans-serif;
+            background: #0f172a;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+
+        }
+
+        .card { 
+            background: #1e293b; 
+            padding: 40px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            text-align: center;
+            max-width: 350px;
+        }
+        /* Estilo da Imagem */
+        .perfil {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid #38bdf8;
+            margin-bottom: 20px;
+            object-fit: cover;
+        }
+        h1 { color: #38bdf8; margin: 10px 0; font-size: 1.8rem; }
+        p { color: #94a3b8; line-height: 1.6; }
         .botao {
             background: #38bdf8;
             color: #0f172a;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 25px;
+            border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 15px;
+            margin-top: 20px;
+            transition: 0.3s;
         }
+        .botao:hover { background: #7dd3fc; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>🚀 SITE DO BERNARDO</h1>
-        <p>Agora com botão e cores novas!</p>
-        <button class="botao" onclick="alert('Funciona!')">Clique Aqui</button>
+        <img src="https://github.com/github.png" alt="Foto do Bernardo" class="perfil">
+        <h1>Bernardo Viana</h1>
+        <p>Desenvolvedor Web em ascensão. Este site é atualizado via GitHub e Netlify!</p>
+        <button class="botao" onclick="alert('Site atualizado com sucesso!')">Me mande um Oi</button>
     </div>
 </body>
 </html>
