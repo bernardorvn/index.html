@@ -91,26 +91,26 @@
     </div>
 
     <script> 
-        function fazerLogin() {
-            const user = document.getElementById('usuario').value;
-            const pass = document.getElementById('senha').value;
+    function fazerLogin() {
+        // 1. Pegamos os valores (Mantenha os nomes 'user' e 'pass')
+        const user = document.getElementById('usuario').value;
+        const pass = document.getElementById('senha').value;
 
-            //Usuários permitidos
-            const usuariosPermitidos = {
-                "admin" : "123",
-                "bernardo" : "120624"
-             
-            };
+        // 2. Lista de usuários
+        const usuariosPermitidos = {
+            "admin": "123",
+            "bernardo": "120624"
+        };
 
-
-         // Verificamos se o usuário existe na lista E se a senha bate
-        if (usuariosPermitidos[userDigitado] === passDigitada) {
+        // 3. O 'if' agora usa os mesmos nomes lá de cima ('user' e 'pass')
+        if (usuariosPermitidos[user] === pass) {
             document.getElementById('tela-login').style.display = 'none';
             document.getElementById('pagina-principal').style.display = 'block';
             
-            // Dica extra: muda o nome na tela para o usuário que logou
-            document.querySelector('h1').innerText = "Bem-vindo, " + userDigitado + "!";
+            // Muda o título para dar as boas-vindas
+            document.querySelector('#pagina-principal h1').innerText = "Bem-vindo, " + user + "!";
         } else {
+            // Se errar, mostra o erro
             document.getElementById('erro').style.display = 'block';
         }
     }
