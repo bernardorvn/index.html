@@ -75,20 +75,19 @@
 <body>
 
     <div id="tela-login" class="container"> 
-        <h1>Login</h1> <h1>Restrito</h1>
-        <p>Use <b>admin</b> e senha <b>123</b></p>
+        <h1>Login</h1>
         <input type="text" id="usuario" placeholder="Usuário">
         <input type="password" id="senha" placeholder="Senha">
         <button class="btn-login" onclick="fazerLogin()">Entrar</button>
-        <p id="erro" style="color: #f87171; font-size: 0.8rem; margin-top: 10px; display: none;">Dados incorretos!</p>
+        <p id="erro" style="color: #f87171; font-size: 0.8rem; margin-top: 15px; display: none;">Acesso negado!</p>
     </div>
 
     <div id="pagina-principal" class="container">
         <img src="https://github.com/github.png" alt="Foto do Bernardo" class="perfil">
         <h1>Bernardo Rodrigues</h1>
-        <p>Desenvolvedor Web em treinamento. Acesso liberado!</p>
-        <button class="botao" onclick="alert('Iniciando sistema de cadastro...')">Faça seu cadastro</button>
-        <button class="btn-login" style="background: #f87171; margin-top: 10px;" onclick="logout()">Sair</button>
+        <p>Acesso confirmado. Bem-vindo ao seu painel!</p>
+        <button class="botao" onclick="alert('Iniciando sistema de cadastro...')">Área de Cadastro</button>
+        <button class="btn-login" style="background: #f87171;" onclick="logout()">Sair</button>
     </div>
 
     <script> 
@@ -96,7 +95,7 @@
             const user = document.getElementById('usuario').value;
             const pass = document.getElementById('senha').value;
 
-            // Lógica de validação
+            // A lógica continua aqui: usuário e senha ficam escondidos no código
             if (user === "admin" && pass === "123") {
                 document.getElementById('tela-login').style.display = 'none';
                 document.getElementById('pagina-principal').style.display = 'block';
@@ -106,7 +105,7 @@
         }
 
         function logout() {
-            location.reload(); // Recarrega a página para voltar ao login
+            location.reload();
         }
     </script>
 </body>
