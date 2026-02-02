@@ -95,18 +95,28 @@
             const user = document.getElementById('usuario').value;
             const pass = document.getElementById('senha').value;
 
-            // A lógica continua aqui: usuário e senha ficam escondidos no código
-            if (user === "admin" && pass === "123"){
-                document.getElementById('tela-login').style.display = 'none';
-                document.getElementById('pagina-principal').style.display = 'block';
-            } else {
-                document.getElementById('erro').style.display = 'block';
-            }
-        }
+            //Usuários permitidos
+            const usuariosPermitidos = {
+                "admin" : "123",
+                "bernardo" : "120624"
+                "alana" : "120624"
+                "user" : "321"
+            };
 
-        function logout() {
-            location.reload();
+
+         // Verificamos se o usuário existe na lista E se a senha bate
+        if (usuariosPermitidos[userDigitado] === passDigitada) {
+            document.getElementById('tela-login').style.display = 'none';
+            document.getElementById('pagina-principal').style.display = 'block';
+            
+            // Dica extra: muda o nome na tela para o usuário que logou
+            document.querySelector('h1').innerText = "Bem-vindo, " + userDigitado + "!";
+        } else {
+            document.getElementById('erro').style.display = 'block';
         }
-    </script>
-</body>
-</html>
+    }
+
+    function logout() {
+        location.reload();
+    }
+</script>
