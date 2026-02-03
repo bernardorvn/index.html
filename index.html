@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Site do Bernardo - Sistema Completo</title>
+    <title>Site do Bernardo - Sistema Administrativo</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -24,6 +24,8 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             text-align: center;
             width: 380px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         input {
@@ -54,7 +56,12 @@
             background: #7dd3fc;
         }
 
-        #pagina-principal, #tela-cadastro { display: none; }
+        /* Escondendo as página inicial */
+        #pagina-principal, 
+        #tela-cadastro, 
+        #painel-admin, 
+        #tela-editar 
+        { display: none; }
 
         .perfil {
             width: 100px;
@@ -66,8 +73,17 @@
         }
 
         h1 { color: #38bdf8; font-size: 1.5rem; margin: 10px 0; }
-        p { color: #94a3b8; line-height: 1.6; }
+        h2 { color: #f87171; font-size: 1.1rem; margin-top: 20px; }
+        p { color: #94a3b8; line-height: 1.6; font-size: 0.9rem; }
         label { display: block; text-align: left; font-size: 0.8rem; color: #38bdf8; margin-top: 5px; }
+
+        /* Estilo da Tabela Admin */
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; background: #0f172a; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #334155; font-size: 0.8rem; }
+        th { background: #334155; color: #38bdf8; }
+        
+        .btn-acao { background: none; border: none; cursor: pointer; font-size: 1.1rem; transition: 0.2s; }
+        .btn-acao:hover { transform: scale(1.2); }
     </style>
 </head>
 <body>
@@ -77,93 +93,140 @@
         <input type="text" id="usuario" placeholder="Usuário">
         <input type="password" id="senha" placeholder="Senha">
         <button class="btn-login" onclick="fazerLogin()">Entrar</button>
-        <button class="botao" onclick="irParaCadastro()">Criar Nova Conta</button>
+        <button class="botao" onclick="abrirTela('tela-cadastro')">Cadastre-se</button>
         <p id="erro" style="color: #f87171; font-size: 0.8rem; margin-top: 15px; display: none;">Acesso negado!</p>
     </div>
 
     <div id="tela-cadastro" class="container">
         <h1>Novo Cadastro</h1>
-        <input type="text" id="cad-user" placeholder="Escolha um Usuário">
+        <input type="text" id="cad-user" placeholder="Nome de Usuário">
+        <input type="password" id="cad-senha" placeholder="Escolha sua Senha">
         <input type="text" id="cad-nome" placeholder="Nome Completo">
-        
         <label>Data de Nascimento</label>
         <input type="date" id="cad-nasc">
-        
         <input type="email" id="cad-email" placeholder="E-mail">
-        <input type="tel" id="cad-tel" placeholder="Telefone">
-        <input type="text" id="cad-end" placeholder="Endereço Completo">
-
         <button class="botao" onclick="finalizarCadastro()">Salvar Cadastro</button>
-        <button class="btn-login" style="background: #64748b; color: white;" onclick="voltarParaLogin()">Cancelar</button>
+        <button class="btn-login" style="background: #64748b; color: white;" onclick="abrirTela('tela-login')">Cancelar</button>
     </div>
 
     <div id="pagina-principal" class="container">
         <img src="https://github.com/github.png" alt="Foto do Bernardo" class="perfil">
-        <h1>Bem-vindo!</h1>
-        <p>Acesso confirmado ao banco de dados local.</p>
-        <button class="btn-login" style="background: #f87171;" onclick="logout()">Sair</button>
+        <h1 id="texto-boas-vindas">Bem-vindo!</h1>
+        
+        <div id="painel-admin">
+            <h2>Gerenciar Usuários</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Usuário</th>
+                        <th>Senha</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-usuarios"></tbody>
+            </table>
+        </div>
+
+        <button class="btn-login" style="background: #f87171; margin-top: 20px;" onclick="logout()">Sair</button>
+    </div>
+
+    <div id="tela-editar" class="container">
+        <h1>Editar Senha</h1>
+        <p>Alterando senha de: <b id="user-alvo" style="color: #38bdf8;"></b></p>
+        <input type="password" id="nova-senha-admin" placeholder="Digite a nova senha">
+        <button class="botao" onclick="salvarNovaSenha()">Confirmar Alteração</button>
+        <button class="btn-login" style="background: #64748b; color: white;" onclick="abrirTela('pagina-principal')">Voltar</button>
     </div>
 
     <script> 
-    // Banco de dados local (LocalStorage) - Carrega o que já existe ou começa com os padrões
     let usuariosDB = JSON.parse(localStorage.getItem('usuarios')) || {
         "admin": "123",
-        "bernardo": "120624",
-        "alana": "alana123"
+        "bernardo": "120624"
     };
+
+    let usuarioSendoEditado = ""; // Variável global para saber quem estamos editando
+
+    // Função genérica para navegar entre as telas
+    function abrirTela(id) {
+        document.querySelectorAll('.container').forEach(c => c.style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+    }
 
     function fazerLogin() {
         const user = document.getElementById('usuario').value.toLowerCase();
         const pass = document.getElementById('senha').value;
 
         if (usuariosDB[user] && usuariosDB[user] === pass) {
-            document.getElementById('tela-login').style.display = 'none';
-            document.getElementById('pagina-principal').style.display = 'block';
-            document.querySelector('#pagina-principal h1').innerText = "Bem-vindo, " + user + "!";
+            abrirTela('pagina-principal');
+            document.getElementById('texto-boas-vindas').innerText = "Olá, " + user + "!";
+
+            if (user === "admin") {
+                document.getElementById('painel-admin').style.display = 'block';
+                gerarTabelaAdmin();
+            } else {
+                document.getElementById('painel-admin').style.display = 'none';
+            }
         } else {
             document.getElementById('erro').style.display = 'block';
         }
     }
 
+    function gerarTabelaAdmin() {
+        const tabela = document.getElementById('tabela-usuarios');
+        tabela.innerHTML = ""; 
+        for (let u in usuariosDB) {
+            let linha = `<tr>
+                <td>${u}</td>
+                <td>${usuariosDB[u]}</td>
+                <td><button class="btn-acao" onclick="prepararEdicao('${u}')">⚙️</button></td>
+            </tr>`;
+            tabela.innerHTML += linha;
+        }
+    }
+
     function finalizarCadastro() {
-        const userDesejado = document.getElementById('cad-user').value.trim().toLowerCase();
-        const nomeReal = document.getElementById('cad-nome').value.trim();
+        const user = document.getElementById('cad-user').value.trim().toLowerCase();
+        const pass = document.getElementById('cad-senha').value.trim();
+        const nome = document.getElementById('cad-nome').value.trim();
 
-        if (userDesejado === "" || nomeReal === "") {
-            alert("Por favor, preencha Usuário e Nome!");
+        if (!user || !pass || !nome) {
+            alert("Preencha todos os campos obrigatórios!");
             return;
         }
 
-        // VERIFICAÇÃO SE USUÁRIO JÁ EXISTE E SUGESTÃO
-        if (usuariosDB[userDesejado]) {
-            let sugestao = userDesejado + Math.floor(Math.random() * 100);
-            alert("O usuário '" + userDesejado + "' já está em uso. Sugerimos: " + sugestao);
-            document.getElementById('cad-user').value = sugestao;
+        if (usuariosDB[user]) {
+            let sugestao = user + Math.floor(Math.random() * 100);
+            alert("Usuário indisponível. Tente: " + sugestao);
             return;
         }
 
-        // SALVANDO NO "BANCO DE DADOS" (LocalStorage)
-        // Definimos uma senha padrão '123' para facilitar o teste de novos cadastros
-        usuariosDB[userDesejado] = "123";
+        usuariosDB[user] = pass;
+        localStorage.setItem('usuarios', JSON.stringify(usuariosDB));
+        alert("Cadastro realizado com sucesso!");
+        abrirTela('tela-login');
+    }
+
+    // Parte do Admin: Preparar Edição
+    function prepararEdicao(u) {
+        usuarioSendoEditado = u;
+        document.getElementById('user-alvo').innerText = u;
+        abrirTela('tela-editar');
+    }
+
+    // Parte do Admin: Salvar Nova Senha
+    function salvarNovaSenha() {
+        const novaSenha = document.getElementById('nova-senha-admin').value;
+        if (!novaSenha) return alert("Digite uma senha válida!");
+
+        usuariosDB[usuarioSendoEditado] = novaSenha;
         localStorage.setItem('usuarios', JSON.stringify(usuariosDB));
         
-        alert("Sucesso! Cadastro de " + nomeReal + " realizado. Use a senha '123' para o primeiro acesso.");
-        voltarParaLogin();
+        alert("Senha de " + usuarioSendoEditado + " alterada com sucesso!");
+        gerarTabelaAdmin(); // Atualiza a tabela com a nova senha
+        abrirTela('pagina-principal');
     }
 
-    function irParaCadastro() {
-        document.getElementById('tela-login').style.display = 'none';
-        document.getElementById('tela-cadastro').style.display = 'block';
-    }
-
-    function voltarParaLogin() {
-        document.getElementById('tela-cadastro').style.display = 'none';
-        document.getElementById('tela-login').style.display = 'block';
-    }
-
-    function logout() {
-        location.reload();
-    }
-</script>
+    function logout() { location.reload(); }
+    </script>
 </body>
 </html>
