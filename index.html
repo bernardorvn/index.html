@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Bernardo - Completo v10</title>
+    <title>Sistema Bernardo - Full Control</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .container { background: #1e293b; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: 550px; max-height: 90vh; overflow-y: auto; }
         input, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
         .btn-login, .botao { background: #38bdf8; color: #0f172a; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        #tela-cadastro, #tela-hub, #tela-financas, #tela-estudos, #tela-assuntos, #tela-detalhes { display: none; }
+        #tela-cadastro, #tela-hub, #tela-financas, #tela-estudos, #tela-assuntos, #tela-detalhes, #tela-admin { display: none; }
         table { width: 100%; margin-top: 20px; border-collapse: collapse; background: #0f172a; border-radius: 8px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #334155; font-size: 0.8rem; }
         th { color: #38bdf8; background: #1e293b; }
@@ -30,65 +30,67 @@
 
     <div id="tela-cadastro" class="container">
         <h1>Novo Cadastro</h1>
-        <input type="text" id="cad-user" placeholder="Escolha um Usuário">
-        <input type="password" id="cad-senha" placeholder="Escolha uma Senha">
-        <button class="botao" onclick="finalizarCadastro()">Salvar Cadastro</button>
+        <input type="text" id="cad-user" placeholder="Usuário">
+        <input type="password" id="cad-senha" placeholder="Senha">
+        <button class="botao" onclick="finalizarCadastro()">Salvar</button>
         <button class="btn-login" style="background: #64748b; color: white;" onclick="abrirTela('tela-login')">Voltar</button>
+    </div>
+
+    <div id="tela-admin" class="container">
+        <h1>Painel de Controle (Admin)</h1>
+        <table>
+            <thead><tr><th>Usuário</th><th>Senha</th><th>Ação</th></tr></thead>
+            <tbody id="corpo-admin"></tbody>
+        </table>
+        <button class="btn-login" onclick="abrirTela('tela-hub')">Voltar ao Hub</button>
     </div>
 
     <div id="tela-hub" class="container">
         <h1>Olá, <span id="nome-user-hub"></span>!</h1>
         <button class="botao" onclick="abrirTela('tela-financas')" style="background: #22c55e; color: white;">💰 Minhas Finanças</button>
         <button class="botao" onclick="abrirTela('tela-estudos')" style="background: #a855f7; color: white;">📚 Meus Estudos</button>
+        <button id="btn-admin-view" class="botao" onclick="abrirTela('tela-admin')" style="background: #f59e0b; color: white; display: none;">⚙️ Painel Admin</button>
         <button class="btn-login" style="background: #f87171; color: white; margin-top: 20px;" onclick="logout()">Sair</button>
     </div>
 
     <div id="tela-financas" class="container">
         <h1>💰 Finanças</h1>
-        <input type="text" id="fin-local" placeholder="Onde gastou?">
-        <input type="number" id="fin-valor" placeholder="Valor (R$)">
-        <button class="botao" onclick="adicionarGasto()" style="background: #22c55e; color: white;">Adicionar Gasto</button>
+        <input type="text" id="fin-local" placeholder="Local">
+        <input type="number" id="fin-valor" placeholder="Valor">
+        <button class="botao" onclick="adicionarGasto()" style="background: #22c55e; color: white;">Adicionar</button>
         <table>
-            <thead><tr><th>Data</th><th>Local</th><th>Valor</th><th>Ações</th></tr></thead>
+            <thead><tr><th>Data</th><th>Local</th><th>Valor</th><th>Ação</th></tr></thead>
             <tbody id="tabela-financas"></tbody>
         </table>
-        <h3 style="background: #334155; padding: 10px; border-radius: 8px; margin-top: 15px;">Total: <span id="fin-total" style="color: #22c55e;">R$ 0,00</span></h3>
+        <h3 id="fin-total">Total: R$ 0,00</h3>
         <button class="btn-login" onclick="abrirTela('tela-hub')">Voltar</button>
     </div>
 
     <div id="tela-estudos" class="container">
-        <h1>📚 Minhas Matérias</h1>
+        <h1>📚 Matérias</h1>
         <input type="text" id="nova-materia" placeholder="Ex: Matemática">
-        <button class="botao" onclick="adicionarMateria()" style="background: #a855f7; color: white;">Cadastrar Matéria</button>
-        <table>
-            <thead><tr><th>Matéria</th><th>Ação</th></tr></thead>
-            <tbody id="corpo-materias"></tbody>
-        </table>
+        <button class="botao" onclick="adicionarMateria()">Cadastrar</button>
+        <table id="tabela-materias"><thead><tr><th>Matéria</th><th>Ação</th></tr></thead><tbody id="corpo-materias"></tbody></table>
         <button class="btn-login" onclick="abrirTela('tela-hub')">Voltar</button>
     </div>
 
     <div id="tela-assuntos" class="container">
-        <h1 id="titulo-materia">Matéria</h1>
-        <input type="text" id="novo-assunto" placeholder="Assunto (ex: Frações)">
+        <h1 id="titulo-materia"></h1>
+        <input type="text" id="novo-assunto" placeholder="Assunto">
         <input type="date" id="data-assunto">
         <button class="botao" onclick="adicionarAssunto()">Cadastrar Assunto</button>
-        <table>
-            <thead><tr><th>Assunto</th><th>Data</th><th>Ação</th></tr></thead>
-            <tbody id="corpo-assuntos"></tbody>
-        </table>
+        <table id="tabela-assuntos"><thead><tr><th>Assunto</th><th>Data</th><th>Ação</th></tr></thead><tbody id="corpo-assuntos"></tbody></table>
         <button class="btn-login" onclick="abrirTela('tela-estudos')">Voltar</button>
     </div>
 
     <div id="tela-detalhes" class="container" style="width: 650px;">
-        <h2 id="titulo-assunto">Assunto</h2>
-        <p id="data-exibida"></p>
-        <textarea id="texto-detalhes" style="height: 250px;" oninput="salvarDetalhes()" placeholder="Escreva aqui tudo sobre este assunto..."></textarea>
-        <button class="botao" onclick="baixarAssunto()" style="background: #22c55e; color: white;">💾 Baixar Relatório (.txt)</button>
-        <button class="btn-login" onclick="abrirTela('tela-assuntos')">Salvar e Voltar</button>
+        <h2 id="titulo-assunto"></h2>
+        <textarea id="texto-detalhes" style="height: 250px;" oninput="salvarDetalhes()" placeholder="Comece a escrever aqui..."></textarea>
+        <button class="botao" onclick="baixarAssunto()" style="background: #22c55e; color: white;">💾 Baixar (.txt)</button>
+        <button class="btn-login" onclick="abrirTela('tela-assuntos')">Voltar</button>
     </div>
 
     <script>
-    // BANCO DE DADOS
     let usuariosDB = JSON.parse(localStorage.getItem('usuarios')) || { "admin": "123", "bernardo": "120624" };
     let estudosDB = JSON.parse(localStorage.getItem('estudos_v3')) || {};
     let financasDB = JSON.parse(localStorage.getItem('financas_v8')) || {};
@@ -98,43 +100,78 @@
     function abrirTela(id) {
         document.querySelectorAll('.container').forEach(c => c.style.display = 'none');
         document.getElementById(id).style.display = 'block';
+        if (id === 'tela-admin') desenharAdmin();
         if (id === 'tela-financas') desenharFinancas();
         if (id === 'tela-estudos') desenharMaterias();
         if (id === 'tela-assuntos') desenharAssuntos();
     }
 
-    // LOGIN E CADASTRO
     function fazerLogin() {
         const u = document.getElementById('usuario').value.toLowerCase().trim();
         const s = document.getElementById('senha').value;
-        if (usuariosDB[u] === s) { 
-            usuarioLogado = u; 
-            document.getElementById('nome-user-hub').innerText = u; 
-            abrirTela('tela-hub'); 
-        } else { alert("Usuário ou senha incorretos!"); }
+        if (usuariosDB[u] === s) {
+            usuarioLogado = u;
+            document.getElementById('nome-user-hub').innerText = u;
+            document.getElementById('btn-admin-view').style.display = (u === 'admin') ? 'block' : 'none';
+            abrirTela('tela-hub');
+        } else { alert("Login inválido!"); }
     }
 
     function finalizarCadastro() {
         const u = document.getElementById('cad-user').value.toLowerCase().trim();
         const s = document.getElementById('cad-senha').value;
-        if (!u || !s) return alert("Preencha todos os campos!");
-        if (usuariosDB[u]) return alert("Usuário já existe!");
-        
-        usuariosDB[u] = s;
-        localStorage.setItem('usuarios', JSON.stringify(usuariosDB));
-        alert("Cadastro realizado com sucesso!");
-        abrirTela('tela-login');
+        if (u && s) { 
+            usuariosDB[u] = s; 
+            localStorage.setItem('usuarios', JSON.stringify(usuariosDB)); 
+            alert("Cadastro realizado!"); 
+            abrirTela('tela-login'); 
+        }
     }
 
-    // FINANÇAS
+    // --- ADMIN LOGIC CORRIGIDA ---
+    function desenharAdmin() {
+        const corpo = document.getElementById('corpo-admin');
+        corpo.innerHTML = "";
+        Object.keys(usuariosDB).forEach(user => {
+            corpo.innerHTML += `<tr>
+                <td>${user}</td>
+                <td>${usuariosDB[user]}</td>
+                <td>
+                    <button class="btn-acao" onclick="comandoAlterarSenha('${user}')" title="Alterar Senha">✏️</button>
+                    ${user !== 'admin' ? `<button class="btn-acao" onclick="comandoExcluirUsuario('${user}')" title="Excluir Usuário">🗑️</button>` : ''}
+                </td>
+            </tr>`;
+        });
+    }
+
+    window.comandoAlterarSenha = (user) => {
+        const nova = prompt(`Nova senha para ${user}:`);
+        if(nova !== null && nova.trim() !== "") { 
+            usuariosDB[user] = nova; 
+            localStorage.setItem('usuarios', JSON.stringify(usuariosDB)); 
+            alert("Senha alterada!");
+            desenharAdmin(); 
+        }
+    };
+
+    window.comandoExcluirUsuario = (user) => {
+        if(confirm(`Tem certeza que deseja excluir o usuário ${user}?`)) {
+            delete usuariosDB[user];
+            localStorage.setItem('usuarios', JSON.stringify(usuariosDB));
+            desenharAdmin();
+        }
+    };
+
+    // --- FINANÇAS ---
     function adicionarGasto() {
         const local = document.getElementById('fin-local').value;
         const valor = parseFloat(document.getElementById('fin-valor').value);
-        if (!local || isNaN(valor)) return alert("Preencha local e valor!");
-        if (!financasDB[usuarioLogado]) financasDB[usuarioLogado] = [];
+        if(!local || isNaN(valor)) return;
+        if(!financasDB[usuarioLogado]) financasDB[usuarioLogado] = [];
         financasDB[usuarioLogado].push({ data: new Date().toLocaleDateString('pt-BR'), local, valor });
         localStorage.setItem('financas_v8', JSON.stringify(financasDB));
-        document.getElementById('fin-local').value = ""; document.getElementById('fin-valor').value = "";
+        document.getElementById('fin-local').value = "";
+        document.getElementById('fin-valor').value = "";
         desenharFinancas();
     }
 
@@ -144,24 +181,21 @@
         (financasDB[usuarioLogado] || []).forEach((g, i) => {
             soma += g.valor;
             corpo.innerHTML += `<tr><td>${g.data}</td><td>${g.local}</td><td>R$ ${g.valor.toFixed(2)}</td>
-            <td><button class="btn-acao" onclick="editarFin(${i})">✏️</button><button class="btn-acao" onclick="excluirFin(${i})">🗑️</button></td></tr>`;
+            <td><button class="btn-acao" onclick="excluirFin(${i})">🗑️</button></td></tr>`;
         });
-        document.getElementById('fin-total').innerText = `R$ ${soma.toFixed(2)}`;
+        document.getElementById('fin-total').innerText = `Total: R$ ${soma.toFixed(2)}`;
     }
+    window.excluirFin = (i) => { financasDB[usuarioLogado].splice(i, 1); localStorage.setItem('financas_v8', JSON.stringify(financasDB)); desenharFinancas(); };
 
-    window.editarFin = (i) => {
-        const novo = prompt("Novo valor:", financasDB[usuarioLogado][i].valor);
-        if(novo && !isNaN(novo)) { financasDB[usuarioLogado][i].valor = parseFloat(novo); localStorage.setItem('financas_v8', JSON.stringify(financasDB)); desenharFinancas(); }
-    };
-    window.excluirFin = (i) => { if(confirm("Deseja excluir este gasto?")) { financasDB[usuarioLogado].splice(i, 1); localStorage.setItem('financas_v8', JSON.stringify(financasDB)); desenharFinancas(); } };
-
-    // ESTUDOS
+    // --- ESTUDOS ---
     function adicionarMateria() {
         const nome = document.getElementById('nova-materia').value;
         if (!nome) return;
         if (!estudosDB[usuarioLogado]) estudosDB[usuarioLogado] = [];
         estudosDB[usuarioLogado].push({ nome, assuntos: [] });
-        salvarEstudos(); document.getElementById('nova-materia').value = ""; desenharMaterias();
+        localStorage.setItem('estudos_v3', JSON.stringify(estudosDB));
+        document.getElementById('nova-materia').value = "";
+        desenharMaterias();
     }
 
     function desenharMaterias() {
@@ -176,9 +210,11 @@
     function adicionarAssunto() {
         const nome = document.getElementById('novo-assunto').value;
         const data = document.getElementById('data-assunto').value || "S/D";
-        if (!nome) return;
+        if(!nome) return;
         estudosDB[usuarioLogado][matIdx].assuntos.push({ nome, data, conteudo: "" });
-        salvarEstudos(); desenharAssuntos();
+        localStorage.setItem('estudos_v3', JSON.stringify(estudosDB));
+        document.getElementById('novo-assunto').value = "";
+        desenharAssuntos();
     }
 
     function desenharAssuntos() {
@@ -191,25 +227,25 @@
     window.entrarAssunto = (i) => {
         assIdx = i; const a = estudosDB[usuarioLogado][matIdx].assuntos[i];
         document.getElementById('titulo-assunto').innerText = a.nome;
-        document.getElementById('data-exibida').innerText = "Data: " + a.data;
         document.getElementById('texto-detalhes').value = a.conteudo;
         abrirTela('tela-detalhes');
     };
 
-    window.salvarDetalhes = () => { estudosDB[usuarioLogado][matIdx].assuntos[assIdx].conteudo = document.getElementById('texto-detalhes').value; salvarEstudos(); };
+    window.salvarDetalhes = () => { 
+        estudosDB[usuarioLogado][matIdx].assuntos[assIdx].conteudo = document.getElementById('texto-detalhes').value; 
+        localStorage.setItem('estudos_v3', JSON.stringify(estudosDB)); 
+    };
 
     window.baixarAssunto = () => {
         const a = estudosDB[usuarioLogado][matIdx].assuntos[assIdx];
-        const texto = `MATÉRIA: ${estudosDB[usuarioLogado][matIdx].nome}\nASSUNTO: ${a.nome}\nDATA: ${a.data}\n\nCONTEÚDO:\n${a.conteudo}`;
-        const blob = new Blob([texto], { type: "text/plain" });
+        const blob = new Blob([a.conteudo], { type: "text/plain" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob); link.download = `${a.nome}.txt`; link.click();
     };
 
-    function salvarEstudos() { localStorage.setItem('estudos_v3', JSON.stringify(estudosDB)); }
     function logout() { location.reload(); }
-    function removerMat(i) { if(confirm("Apagar matéria e todos os assuntos?")) { estudosDB[usuarioLogado].splice(i, 1); salvarEstudos(); desenharMaterias(); } }
-    function removerAss(i) { if(confirm("Apagar este assunto?")) { estudosDB[usuarioLogado][matIdx].assuntos.splice(i, 1); salvarEstudos(); desenharAssuntos(); } }
+    function removerMat(i) { if(confirm("Apagar matéria?")) { estudosDB[usuarioLogado].splice(i, 1); localStorage.setItem('estudos_v3', JSON.stringify(estudosDB)); desenharMaterias(); } }
+    function removerAss(i) { if(confirm("Apagar assunto?")) { estudosDB[usuarioLogado][matIdx].assuntos.splice(i, 1); localStorage.setItem('estudos_v3', JSON.stringify(estudosDB)); desenharAssuntos(); } }
     </script>
 </body>
 </html>
