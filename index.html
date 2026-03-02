@@ -31,11 +31,15 @@
         .menu-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-main); margin-right: 15px; }
         .app-logo { font-weight: 800; color: var(--primary); font-size: 16px; letter-spacing: -0.5px; }
 
-        /* SIDEBAR ATUALIZADA */
+        /* SIDEBAR OTIMIZADA */
         .sidebar {
             position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
             background: var(--card-bg); z-index: 200; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 10px 0 30px rgba(0,0,0,0.1); padding: 25px 20px;
+            /* Melhora performance mobile */
+            will-change: transform;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
         }
         .sidebar.active { left: 0; }
         .sidebar-overlay {
@@ -56,10 +60,18 @@
         .nav-item.active { background: #eef2ff; color: var(--primary); }
         .nav-item.active span.bullet { color: var(--primary); }
         
-        /* CONTEÚDO */
-        .view-container { padding: 12px; max-width: 1200px; margin: 0 auto; }
+        /* CONTEÚDO OTIMIZADO */
+        .view-container { 
+            padding: 12px; max-width: 1200px; margin: 0 auto; 
+            transform: translateZ(0); /* Aceleração de hardware */
+        }
         .view { display: none; }
         .view.active { display: block; }
+
+        canvas {
+            image-rendering: -webkit-optimize-contrast; /* Melhora nitidez */
+            max-width: 100% !important;
+        }
 
         .card { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); padding: 14px; margin-bottom: 10px; }
         .grid-layout { display: grid; grid-template-columns: 1fr; gap: 10px; }
@@ -269,13 +281,27 @@
             if(u && s) db.ref(`usuarios/${u}`).set({ senha: s, saldoMensal: 0, cartoes: ["Nubank"] }).then(() => toggleAuth(false));
         }
 
+        // FUNÇÃO DE TROCA DE ABAS OTIMIZADA PARA EVITAR "EMBAÇADO"
         function switchTab(t) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-            document.getElementById('view-'+t).classList.add('active');
-            document.getElementById('btn-'+t).classList.add('active');
-            toggleSidebar();
-            window.scrollTo(0,0);
+            // Fecha o menu primeiro para liberar processamento
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+
+            // Aguarda a animação do menu terminar (150ms) antes de processar os gráficos
+            setTimeout(() => {
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+                
+                document.getElementById('view-'+t).classList.add('active');
+                if(document.getElementById('btn-'+t)) document.getElementById('btn-'+t).classList.add('active');
+                
+                // Se for aba de cartões, força re-renderização para garantir nitidez
+                if (t === 'cartoes') renderTudo();
+                
+                window.scrollTo(0,0);
+            }, 150);
         }
 
         function editarSaldoMensal() { 
@@ -312,6 +338,7 @@
             db.ref(`usuarios/${userLogado}/financas`).set(list).then(() => {
                 document.getElementById('f-local').value = ""; document.getElementById('f-valor').value = ""; 
                 document.getElementById('f-is-parcelado').checked = false; toggleParcelas();
+                document.getElementById('edit-index-gasto').value = "-1";
             });
         }
 
@@ -326,6 +353,7 @@
             if(idx === -1) list.push(obj); else list[idx] = obj;
             db.ref(`usuarios/${userLogado}/fixas`).set(list).then(() => {
                 document.getElementById('fixa-nome').value = ""; document.getElementById('fixa-valor').value = "";
+                document.getElementById('edit-index-fixa').value = "-1";
             });
         }
 
