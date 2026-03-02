@@ -2,379 +2,378 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Bernardo - Cloud Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEXUS FINANCE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #ffffff;
-            --primary: #38bdf8;
-            --accent: #1e293b;
+            --bg: #f8fafc; --card-bg: #ffffff; --border: #e2e8f0;
+            --primary: #4f46e5; --success: #10b981; --danger: #ef4444; 
+            --warning: #f59e0b; --text-main: #0f172a; --text-sub: #64748b; --savings: #db2777;
         }
 
-        /* Classes de Temas */
-        .tema-esmeralda { --bg: #064e3b; --card: #065f46; --primary: #34d399; }
-        .tema-dracula { --bg: #282a36; --card: #44475a; --primary: #bd93f9; }
-        .tema-oceano { --bg: #0c4a6e; --card: #075985; --primary: #7dd3fc; }
+        * { box-sizing: border-box; font-size: 14px; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-main); min-height: 100vh; }
 
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; transition: 0.5s; }
-        .container { background: var(--card); padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: 90%; max-width: 550px; max-height: 90vh; overflow-y: auto; }
-        input, textarea { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #334155; background: var(--bg); color: white; box-sizing: border-box; }
-        .btn-login, .botao { background: var(--primary); color: #0f172a; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        /* Saudação */
+        .welcome-box { padding: 10px 5px; margin-bottom: 5px; }
+        .welcome-box h2 { font-size: 20px; font-weight: 500; color: var(--text-sub); }
+        .welcome-box span { color: var(--text-main); font-weight: 800; }
+
+        .nav-tabs { display: flex; gap: 4px; padding: 10px; background: var(--card-bg); border-bottom: 1px solid var(--border); overflow-x: auto; position: sticky; top: 0; z-index: 50; }
+        .tab-btn { background: none; border: none; color: var(--text-sub); cursor: pointer; font-weight: 600; padding: 10px 14px; border-radius: 10px; white-space: nowrap; }
+        .tab-btn.active { color: var(--primary); background: #eef2ff; }
+
+        .view-container { padding: 15px; padding-bottom: 30px; max-width: 1200px; margin: 0 auto; }
+        .view { display: none; }
+        .view.active { display: block; }
+
+        .card { background: var(--card-bg); border-radius: 20px; border: 1px solid var(--border); padding: 18px; margin-bottom: 12px; }
+        .grid-layout { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        @media (min-width: 900px) { .grid-layout { grid-template-columns: 320px 1fr; } }
         
-        #tela-cadastro, #tela-hub, #tela-financas, #tela-estudos, #tela-assuntos, #tela-detalhes, #tela-admin { display: none; }
+        .charts-wrapper { display: flex; flex-wrap: nowrap; gap: 12px; overflow-x: auto; padding-bottom: 10px; }
+        .chart-item { min-width: 280px; background: var(--card-bg); border-radius: 18px; padding: 15px; border: 1px solid var(--border); position: relative; }
+        .canvas-container { height: 180px; position: relative; }
+
+        .resumo-pessoas { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; }
+        .pessoa-tag { background: #f1f5f9; padding: 8px 15px; border-radius: 12px; border: 1px solid var(--border); white-space: nowrap; }
+
+        input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1.5px solid var(--border); margin-bottom: 10px; font-size: 16px; }
+        .botao { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; }
         
-        table { width: 100%; margin-top: 20px; border-collapse: collapse; background: var(--bg); border-radius: 8px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #334155; font-size: 0.8rem; }
-        th { color: var(--primary); background: var(--card); }
-        
-        .senha-container { position: relative; width: 100%; }
-        .btn-show { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.2rem; }
-        
-        .chart-container { margin-top: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; }
-
-        /* ESTILO DA MINI JANELA DE CORES */
-        #picker-flutuante {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-        }
-
-        #btn-abrir-cores {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            border: none;
-            background: var(--card);
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.3s;
-        }
-
-        #lista-cores {
-            margin-top: 10px;
-            background: var(--card);
-            padding: 10px;
-            border-radius: 12px;
-            display: none;
-            gap: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            flex-direction: column;
-        }
-
-        .ponto-cor {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid rgba(255,255,255,0.2);
-            transition: 0.2s;
-        }
-
-        .ponto-cor:hover { transform: scale(1.1); border-color: white; }
+        .gasto-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--card-bg); border-radius: 16px; margin-bottom: 8px; border: 1px solid var(--border); }
+        .btn-acao { background: none; border: none; cursor: pointer; font-size: 18px; margin-left: 10px; }
+        .btn-edit { color: var(--primary); }
+        .btn-del { color: var(--danger); }
+        .auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
     </style>
 </head>
-<body id="corpo-app">
+<body>
 
-    <div id="picker-flutuante">
-        <button id="btn-abrir-cores" onclick="toggleMenuCores()">🎨</button>
-        <div id="lista-cores">
-            <div class="ponto-cor" style="background: #0f172a;" onclick="mudarTema('')" title="Padrão"></div>
-            <div class="ponto-cor" style="background: #064e3b;" onclick="mudarTema('tema-esmeralda')" title="Esmeralda"></div>
-            <div class="ponto-cor" style="background: #282a36;" onclick="mudarTema('tema-dracula')" title="Dracula"></div>
-            <div class="ponto-cor" style="background: #0c4a6e;" onclick="mudarTema('tema-oceano')" title="Oceano"></div>
+    <div id="tela-auth" class="auth-overlay">
+        <div class="card" style="width: 100%; max-width: 360px; text-align: center;">
+            <h2 style="font-weight: 800; color: var(--primary); margin-bottom: 20px;">NEXUS FINANCE</h2>
+            <div id="box-login">
+                <input type="text" id="usuario" placeholder="Usuário">
+                <input type="password" id="senha" placeholder="Senha">
+                <button class="botao" onclick="fazerLogin()">Entrar</button>
+                <p onclick="toggleAuth(true)" style="margin-top:20px; cursor:pointer; color: var(--text-sub);">Cadastre-se</p>
+            </div>
+            <div id="box-cad" style="display:none">
+                <input type="text" id="cad-user" placeholder="Novo Usuário">
+                <input type="password" id="cad-pass" placeholder="Senha">
+                <button class="botao" style="background:var(--success)" onclick="registrar()">Criar Conta</button>
+                <p onclick="toggleAuth(false)" style="margin-top:20px; cursor:pointer; color: var(--text-sub);">Voltar ao login</p>
+            </div>
         </div>
     </div>
 
-    <div id="tela-login" class="container"> 
-        <h1>Login Cloud</h1>
-        <input type="text" id="usuario" placeholder="Usuário">
-        <div class="senha-container">
-            <input type="password" id="senha" placeholder="Senha">
-            <button class="btn-show" onclick="toggleSenha('senha')">👁️</button>
+    <nav class="nav-tabs" id="nav-app" style="display: none;">
+        <button class="tab-btn active" onclick="switchTab('home')">Início</button>
+        <button class="tab-btn" onclick="switchTab('cartoes')">Cartões</button>
+        <button class="tab-btn" onclick="switchTab('fixas')">Contas Fixas</button>
+        <button class="tab-btn" onclick="switchTab('poupanca')" style="color:var(--savings)">Poupança</button>
+        <button class="tab-btn" onclick="location.reload()" style="color:var(--danger)">Sair</button>
+    </nav>
+
+    <main class="view-container" id="main-app" style="display: none;">
+        
+        <div id="view-home" class="view active">
+            <div class="welcome-box">
+                <h2 id="msg-boas-vindas">Olá, <span>Visitante</span></h2>
+            </div>
+
+            <div id="alertas-vencimento" class="card" style="display:none; border-left: 5px solid var(--warning); background: #fffbeb;">
+                <strong style="color: #92400e;">⚠️ Contas vencendo em breve:</strong>
+                <ul id="lista-alertas" style="margin-top: 10px; color: #b45309; padding-left: 20px;"></ul>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+                <div class="card" style="text-align:center;">
+                    <span style="color: var(--text-sub); font-weight: 700; font-size: 11px;">ORÇAMENTO MENSAL</span>
+                    <p id="h-saldo-total" style="font-size:32px; font-weight:800; margin:10px 0">R$ 0,00</p>
+                    <button class="botao" onclick="editarSaldoMensal()" style="padding: 8px; font-size: 12px; background: #f1f5f9; color: var(--primary);">✎ Editar</button>
+                </div>
+                <div class="card" style="text-align:center;">
+                    <span style="color: var(--text-sub); font-weight: 700; font-size: 11px;">DISPONÍVEL (SOBRA)</span>
+                    <p id="h-sobra" style="font-size:32px; font-weight:800; margin:10px 0">R$ 0,00</p>
+                </div>
+            </div>
         </div>
-        <button class="btn-login" onclick="fazerLogin()">Entrar</button>
-        <button class="botao" onclick="abrirTela('tela-cadastro')" style="background: #64748b; color: white;">Cadastre-se</button>
-    </div>
 
-    <div id="tela-cadastro" class="container">
-        <h1>Novo Cadastro</h1>
-        <input type="text" id="cad-user" placeholder="Usuário">
-        <div class="senha-container">
-            <input type="password" id="cad-senha" placeholder="Senha">
-            <button class="btn-show" onclick="toggleSenha('cad-senha')">👁️</button>
+        <div id="view-cartoes" class="view">
+            <div class="grid-layout">
+                <aside>
+                    <div class="card">
+                        <h3 id="titulo-form-gasto">Novo Gasto</h3>
+                        <input type="hidden" id="edit-index-gasto" value="-1">
+                        <input type="text" id="f-local" placeholder="Estabelecimento">
+                        <input type="number" id="f-valor" placeholder="Valor Total">
+                        <select id="f-cartao-select"></select>
+                        <input type="text" id="f-pessoa" placeholder="Quem comprou?">
+                        <input type="date" id="f-data">
+                        <button class="botao" onclick="addGasto()">Salvar Compra</button>
+                    </div>
+                </aside>
+                <section>
+                    <div class="charts-wrapper" id="container-graficos"></div>
+                    <div class="resumo-pessoas" id="resumo-por-pessoa"></div>
+                    <div id="lista-financas"></div>
+                </section>
+            </div>
         </div>
-        <button class="botao" onclick="finalizarCadastro()">Salvar na Nuvem</button>
-        <button class="btn-login" style="background: #64748b; color: white;" onclick="abrirTela('tela-login')">Voltar</button>
-    </div>
 
-    <div id="tela-hub" class="container">
-        <h1>Olá, <span id="nome-user-hub"></span>!</h1>
-        <button class="botao" onclick="abrirTela('tela-financas')" style="background: #22c55e; color: white;">💰 Finanças</button>
-        <button class="botao" onclick="abrirTela('tela-estudos')" style="background: #a855f7; color: white;">📚 Estudos</button>
+        <div id="view-fixas" class="view">
+            <div class="grid-layout">
+                <aside><div class="card">
+                    <h3 id="titulo-form-fixa">Conta Fixa</h3>
+                    <input type="hidden" id="edit-index-fixa" value="-1">
+                    <input type="text" id="fixa-nome" placeholder="Nome">
+                    <input type="number" id="fixa-valor" placeholder="Valor">
+                    <input type="date" id="fixa-vencimento">
+                    <button class="botao" onclick="addContaFixa()">Salvar Fixa</button>
+                </div></aside>
+                <section id="lista-fixas"></section>
+            </div>
+        </div>
 
-        <button id="btn-admin-view" class="botao" onclick="abrirTela('tela-admin')" style="background: #f59e0b; color: white; display: none; margin-top: 20px;">⚙️ Admin</button>
-        <button class="btn-login" style="background: #f87171; color: white; margin-top: 20px;" onclick="logout()">Sair</button>
-    </div>
-
-    <div id="tela-financas" class="container">
-        <h1>💰 Finanças</h1>
-        <div class="chart-container"><canvas id="meuGrafico"></canvas></div>
-        <input type="date" id="fin-data">
-        <input type="text" id="fin-local" placeholder="Onde gastou?">
-        <input type="number" id="fin-valor" placeholder="Valor">
-        <button id="btn-salvar-gasto" class="botao" onclick="adicionarGasto()">Adicionar Gasto</button>
-        <table><thead><tr><th>Data</th><th>Local</th><th>Valor</th><th>Ações</th></tr></thead><tbody id="tabela-financas"></tbody></table>
-        <h3 id="fin-total">Total: R$ 0,00</h3>
-        <button class="btn-login" onclick="abrirTela('tela-hub')">Voltar</button>
-    </div>
-
-    <div id="tela-estudos" class="container">
-        <h1>📚 Matérias</h1>
-        <input type="text" id="nova-materia" placeholder="Ex: Matemática">
-        <button class="botao" onclick="adicionarMateria()">Cadastrar Matéria</button>
-        <table><thead><tr><th>Matéria</th><th>Ações</th></tr></thead><tbody id="corpo-materias"></tbody></table>
-        <button class="btn-login" onclick="abrirTela('tela-hub')">Voltar</button>
-    </div>
-
-    <div id="tela-assuntos" class="container">
-        <h1 id="titulo-materia"></h1>
-        <input type="text" id="novo-assunto" placeholder="Assunto">
-        <input type="date" id="data-assunto">
-        <button class="botao" onclick="adicionarAssunto()">Cadastrar Assunto</button>
-        <table><thead><tr><th>Assunto</th><th>Data</th><th>Ação</th></tr></thead><tbody id="corpo-assuntos"></tbody></table>
-        <button class="btn-login" onclick="abrirTela('tela-estudos')">Voltar</button>
-    </div>
-
-    <div id="tela-detalhes" class="container" style="width: 650px;">
-        <h2 id="titulo-assunto"></h2>
-        <textarea id="texto-detalhes" style="height: 250px;" oninput="salvarDetalhes()" placeholder="Anotações..."></textarea>
-        <button class="btn-login" onclick="abrirTela('tela-assuntos')">Voltar</button>
-    </div>
-
-    <div id="tela-admin" class="container">
-        <h1>Painel Admin</h1>
-        <table><thead><tr><th>Usuário</th><th>Senha</th><th>Ação</th></tr></thead><tbody id="corpo-admin"></tbody></table>
-        <button class="btn-login" onclick="abrirTela('tela-hub')">Voltar</button>
-    </div>
+        <div id="view-poupanca" class="view">
+            <div class="grid-layout">
+                <div class="card" style="text-align:center;"><p id="p-total" style="font-size:36px; font-weight:800;">R$ 0,00</p></div>
+                <div class="card">
+                    <input type="number" id="p-valor" placeholder="Valor">
+                    <div style="display:flex; gap:10px;">
+                        <button class="botao" style="background:var(--success)" onclick="movimentarPoupanca('entrada')">Guardar</button>
+                        <button class="botao" style="background:var(--danger)" onclick="movimentarPoupanca('saida')">Retirar</button>
+                    </div>
+                </div>
+                <div id="lista-poupanca"></div>
+            </div>
+        </div>
+    </main>
 
     <script>
-    // FIREBASE CONFIG
-    const firebaseConfig = {
-        apiKey: "AIzaSyAgUHntWb0V0l6MoHJVxDMs5sstPSaH-lc",
-        authDomain: "sistema-bernardo-1999.firebaseapp.com",
-        projectId: "sistema-bernardo-1999",
-        storageBucket: "sistema-bernardo-1999.firebasestorage.app",
-        messagingSenderId: "1071659920638",
-        appId: "1:1071659920638:web:f8843b1886ff698acf49af",
-        databaseURL: "https://sistema-bernardo-1999-default-rtdb.firebaseio.com/"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgUHntWb0V0l6MoHJVxDMs5sstPSaH-lc",
+            authDomain: "sistema-bernardo-1999.firebaseapp.com",
+            projectId: "sistema-bernardo-1999",
+            storageBucket: "sistema-bernardo-1999.firebasestorage.app",
+            messagingSenderId: "1071659920638",
+            appId: "1:1071659920638:web:f8843b1886ff698acf49af",
+            databaseURL: "https://sistema-bernardo-1999-default-rtdb.firebaseio.com/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let userLogado = "", dados = {};
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    let usuariosDB = {}, estudosDB = {}, financasDB = {};
-    let usuarioLogado = "", matIdx = null, assIdx = null, editandoGastoIdx = null;
-    let meuGrafico = null;
-
-    // Funções de Interface
-    function toggleMenuCores() {
-        const lista = document.getElementById('lista-cores');
-        lista.style.display = (lista.style.display === 'flex') ? 'none' : 'flex';
-    }
-
-    function mudarTema(classe) {
-        document.getElementById('corpo-app').className = classe;
-        localStorage.setItem('tema-preferido', classe);
-        document.getElementById('lista-cores').style.display = 'none'; // Fecha ao escolher
-    }
-
-    // Fecha o menu de cores ao clicar fora
-    window.addEventListener('click', (e) => {
-        if (!document.getElementById('picker-flutuante').contains(e.target)) {
-            document.getElementById('lista-cores').style.display = 'none';
+        function toggleAuth(isCad) {
+            document.getElementById('box-login').style.display = isCad ? 'none' : 'block';
+            document.getElementById('box-cad').style.display = isCad ? 'block' : 'none';
         }
-    });
 
-    // Carregar tema salvo
-    if(localStorage.getItem('tema-preferido')) mudarTema(localStorage.getItem('tema-preferido'));
-
-    // Database Sync
-    db.ref('/').on('value', (snap) => {
-        const data = snap.val() || {};
-        usuariosDB = data.usuarios || { "admin": "123" };
-        estudosDB = data.estudos || {};
-        financasDB = data.financas || {};
-        if (usuarioLogado) atualizarTudo();
-    });
-
-    function abrirTela(id) {
-        document.querySelectorAll('.container').forEach(c => c.style.display = 'none');
-        document.getElementById(id).style.display = 'block';
-        if (id === 'tela-financas') {
-            document.getElementById('fin-data').valueAsDate = new Date();
-            setTimeout(renderizarGrafico, 100);
+        function fazerLogin() {
+            const u = document.getElementById('usuario').value.toLowerCase().trim();
+            const s = document.getElementById('senha').value;
+            db.ref('/').once('value', snap => {
+                dados = snap.val() || {};
+                if (dados.usuarios && dados.usuarios[u] && dados.usuarios[u].senha === s) {
+                    userLogado = u;
+                    document.getElementById('tela-auth').style.display = "none";
+                    document.getElementById('nav-app').style.display = "flex";
+                    document.getElementById('main-app').style.display = "block";
+                    db.ref('/').on('value', s => { dados = s.val(); renderTudo(); });
+                } else { alert("Erro!"); }
+            });
         }
-        atualizarTudo();
-    }
 
-    function toggleSenha(id) {
-        const x = document.getElementById(id);
-        x.type = x.type === "password" ? "text" : "password";
-    }
-
-    function fazerLogin() {
-        const u = document.getElementById('usuario').value.toLowerCase().trim();
-        const s = document.getElementById('senha').value;
-        if (usuariosDB[u] === s) {
-            usuarioLogado = u;
-            document.getElementById('nome-user-hub').innerText = u;
-            document.getElementById('btn-admin-view').style.display = (u === 'admin') ? 'block' : 'none';
-            abrirTela('tela-hub');
-        } else { alert("Login inválido!"); }
-    }
-
-    function renderizarGrafico() {
-        const canvas = document.getElementById('meuGrafico');
-        if(!canvas) return;
-        const ctx = canvas.getContext('2d');
-        const gastos = financasDB[usuarioLogado] || [];
-        const resumo = {};
-        gastos.forEach(g => { resumo[g.local] = (resumo[g.local] || 0) + g.valor; });
-
-        if (meuGrafico) meuGrafico.destroy();
-        meuGrafico = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(resumo),
-                datasets: [{
-                    data: Object.values(resumo),
-                    backgroundColor: ['#38bdf8', '#22c55e', '#a855f7', '#f59e0b', '#f87171', '#ec4899'],
-                    borderWidth: 0
-                }]
-            },
-            options: { plugins: { legend: { labels: { color: 'white', font: { size: 10 } } } } }
-        });
-    }
-
-    function adicionarGasto() {
-        const dataInput = document.getElementById('fin-data').value;
-        const local = document.getElementById('fin-local').value;
-        const valor = parseFloat(document.getElementById('fin-valor').value);
-        if (!dataInput || !local || isNaN(valor)) return alert("Preencha tudo!");
-        const dataFormatada = dataInput.split('-').reverse().join('/');
-        if(!financasDB[usuarioLogado]) financasDB[usuarioLogado] = [];
-        if (editandoGastoIdx !== null) {
-            financasDB[usuarioLogado][editandoGastoIdx] = { data: dataFormatada, local, valor };
-            editandoGastoIdx = null;
-            document.getElementById('btn-salvar-gasto').innerText = "Adicionar Gasto";
-        } else {
-            financasDB[usuarioLogado].push({ data: dataFormatada, local, valor });
+        function registrar() {
+            const u = document.getElementById('cad-user').value.toLowerCase().trim();
+            const s = document.getElementById('cad-pass').value;
+            if(u && s) db.ref(`usuarios/${u}`).set({ senha: s, saldoMensal: 0, cartoes: ["Nubank"] }).then(() => toggleAuth(false));
         }
-        db.ref('financas/' + usuarioLogado).set(financasDB[usuarioLogado]);
-    }
 
-    function desenharFinancas() {
-        const corpo = document.getElementById('tabela-financas');
-        if (!corpo) return;
-        let soma = 0; corpo.innerHTML = "";
-        (financasDB[usuarioLogado] || []).forEach((g, i) => {
-            soma += g.valor;
-            corpo.innerHTML += `<tr><td>${g.data}</td><td>${g.local}</td><td>R$ ${g.valor.toFixed(2)}</td>
-            <td><button style="background:none; border:none; cursor:pointer;" onclick="editarGasto(${i})">✏️</button>
-            <button style="background:none; border:none; cursor:pointer;" onclick="excluirFin(${i})">🗑️</button></td></tr>`;
-        });
-        document.getElementById('fin-total').innerText = `Total: R$ ${soma.toFixed(2)}`;
-    }
+        function switchTab(t) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('view-'+t).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
 
-    function editarGasto(i) {
-        const g = financasDB[usuarioLogado][i];
-        document.getElementById('fin-data').value = g.data.split('/').reverse().join('-');
-        document.getElementById('fin-local').value = g.local;
-        document.getElementById('fin-valor').value = g.valor;
-        editandoGastoIdx = i;
-        document.getElementById('btn-salvar-gasto').innerText = "Salvar Alteração";
-    }
+        function editarSaldoMensal() { 
+            const n = prompt("Novo orçamento:", dados.usuarios[userLogado].saldoMensal); 
+            if(n) db.ref(`usuarios/${userLogado}/saldoMensal`).set(parseFloat(n)); 
+        }
 
-    window.excluirFin = (i) => { if(confirm("Excluir?")) { financasDB[usuarioLogado].splice(i, 1); db.ref('financas/' + usuarioLogado).set(financasDB[usuarioLogado]); } };
-    function logout() { location.reload(); }
-    function finalizarCadastro() {
-        const u = document.getElementById('cad-user').value.toLowerCase().trim();
-        const s = document.getElementById('cad-senha').value;
-        if (u && s) { usuariosDB[u] = s; db.ref('usuarios').set(usuariosDB); alert("Cadastrado!"); abrirTela('tela-login'); }
-    }
-    function atualizarTudo() {
-        desenharFinancas();
-        desenharMaterias();
-        if (matIdx !== null) desenharAssuntos();
-        if (usuarioLogado === 'admin') desenharAdmin();
-    }
-    function adicionarMateria() {
-        const nome = document.getElementById('nova-materia').value;
-        if (!estudosDB[usuarioLogado]) estudosDB[usuarioLogado] = [];
-        estudosDB[usuarioLogado].push({ nome, assuntos: [] });
-        db.ref('estudos/' + usuarioLogado).set(estudosDB[usuarioLogado]);
-        document.getElementById('nova-materia').value = "";
-    }
-    function desenharMaterias() {
-        const corpo = document.getElementById('corpo-materias'); if(!corpo) return;
-        corpo.innerHTML = "";
-        (estudosDB[usuarioLogado] || []).forEach((m, i) => {
-            corpo.innerHTML += `<tr><td style="cursor:pointer" onclick="entrarMateria(${i})">${m.nome}</td><td><button onclick="removerMat(${i})">🗑️</button></td></tr>`;
+        function prepararEdicaoGasto(i) {
+            const g = dados.usuarios[userLogado].financas[i];
+            document.getElementById('edit-index-gasto').value = i;
+            document.getElementById('f-local').value = g.local;
+            document.getElementById('f-valor').value = g.valor;
+            document.getElementById('f-pessoa').value = g.pessoa;
+            document.getElementById('f-data').value = g.data;
+            document.getElementById('titulo-form-gasto').innerText = "Editando Gasto";
+            switchTab('cartoes');
+        }
+
+        function prepararEdicaoFixa(i) {
+            const f = dados.usuarios[userLogado].fixas[i];
+            document.getElementById('edit-index-fixa').value = i;
+            document.getElementById('fixa-nome').value = f.nome;
+            document.getElementById('fixa-valor').value = f.valor;
+            document.getElementById('fixa-vencimento').value = f.vencimento;
+            document.getElementById('titulo-form-fixa').innerText = "Editando Fixa";
+            switchTab('fixas');
+        }
+
+        function addGasto() {
+            const idx = parseInt(document.getElementById('edit-index-gasto').value);
+            let list = dados.usuarios[userLogado].financas || [];
+            const obj = { 
+                local: document.getElementById('f-local').value, 
+                valor: parseFloat(document.getElementById('f-valor').value), 
+                pessoa: document.getElementById('f-pessoa').value || "Eu", 
+                cartao: document.getElementById('f-cartao-select').value, 
+                data: document.getElementById('f-data').value 
+            };
+            if(idx === -1) list.push(obj); else list[idx] = obj;
+            db.ref(`usuarios/${userLogado}/financas`).set(list).then(() => {
+                document.getElementById('edit-index-gasto').value = "-1";
+                document.getElementById('titulo-form-gasto').innerText = "Novo Gasto";
+                document.getElementById('f-local').value = ""; document.getElementById('f-valor').value = "";
+            });
+        }
+
+        function addContaFixa() {
+            const idx = parseInt(document.getElementById('edit-index-fixa').value);
+            let list = dados.usuarios[userLogado].fixas || [];
+            const obj = { 
+                nome: document.getElementById('fixa-nome').value, 
+                valor: parseFloat(document.getElementById('fixa-valor').value), 
+                vencimento: document.getElementById('fixa-vencimento').value 
+            };
+            if(idx === -1) list.push(obj); else list[idx] = obj;
+            db.ref(`usuarios/${userLogado}/fixas`).set(list).then(() => {
+                document.getElementById('edit-index-fixa').value = "-1";
+                document.getElementById('titulo-form-fixa').innerText = "Conta Fixa";
+                document.getElementById('fixa-nome').value = ""; document.getElementById('fixa-valor').value = "";
+            });
+        }
+
+        function delGasto(i) { if(confirm('Excluir?')) { let f = [...dados.usuarios[userLogado].financas]; f.splice(i,1); db.ref(`usuarios/${userLogado}/financas`).set(f); } }
+        function delFixa(i) { if(confirm('Excluir?')) { let f = [...dados.usuarios[userLogado].fixas]; f.splice(i,1); db.ref(`usuarios/${userLogado}/fixas`).set(f); } }
+
+        function movimentarPoupanca(tipo) {
+            const v = parseFloat(document.getElementById('p-valor').value);
+            if(isNaN(v)) return;
+            let list = dados.usuarios[userLogado].poupanca_extrato || [];
+            list.push({ tipo, valor: v, data: new Date().toISOString() });
+            db.ref(`usuarios/${userLogado}/poupanca_extrato`).set(list);
+            document.getElementById('p-valor').value = "";
+        }
+
+        // Plugin para texto no centro do gráfico
+        Chart.register({
+            id: 'centerText',
+            afterDraw: (chart) => {
+                if (chart.options.plugins.centerText) {
+                    const { ctx, chartArea: { top, left, width, height } } = chart;
+                    ctx.save(); ctx.font = 'bold 16px sans-serif'; ctx.fillStyle = '#0f172a'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(chart.options.plugins.centerText.text, left + width / 2, top + height / 2); ctx.restore();
+                }
+            }
         });
-    }
-    window.entrarMateria = (i) => { matIdx = i; document.getElementById('titulo-materia').innerText = estudosDB[usuarioLogado][i].nome; abrirTela('tela-assuntos'); };
-    function adicionarAssunto() {
-        const nome = document.getElementById('novo-assunto').value;
-        const data = document.getElementById('data-assunto').value || "S/D";
-        if(!estudosDB[usuarioLogado][matIdx].assuntos) estudosDB[usuarioLogado][matIdx].assuntos = [];
-        estudosDB[usuarioLogado][matIdx].assuntos.push({ nome, data, conteudo: "" });
-        db.ref('estudos/' + usuarioLogado).set(estudosDB[usuarioLogado]);
-        document.getElementById('novo-assunto').value = "";
-    }
-    function desenharAssuntos() {
-        const corpo = document.getElementById('corpo-assuntos'); if(!corpo) return;
-        corpo.innerHTML = "";
-        (estudosDB[usuarioLogado][matIdx].assuntos || []).forEach((a, i) => {
-            corpo.innerHTML += `<tr><td style="cursor:pointer" onclick="entrarAssunto(${i})">${a.nome}</td><td>${a.data}</td><td><button onclick="removerAss(${i})">🗑️</button></td></tr>`;
-        });
-    }
-    window.entrarAssunto = (i) => {
-        assIdx = i; const a = estudosDB[usuarioLogado][matIdx].assuntos[i];
-        document.getElementById('titulo-assunto').innerText = a.nome;
-        document.getElementById('texto-detalhes').value = a.conteudo || "";
-        abrirTela('tela-detalhes');
-    };
-    window.salvarDetalhes = () => {
-        estudosDB[usuarioLogado][matIdx].assuntos[assIdx].conteudo = document.getElementById('texto-detalhes').value;
-        db.ref('estudos/' + usuarioLogado).set(estudosDB[usuarioLogado]);
-    };
-    function desenharAdmin() {
-        const corpo = document.getElementById('corpo-admin'); if(!corpo) return;
-        corpo.innerHTML = "";
-        Object.keys(usuariosDB).forEach(u => {
-            corpo.innerHTML += `<tr><td>${u}</td><td>${usuariosDB[u]}</td><td><button onclick="mudarS('${u}')">✏️</button></td></tr>`;
-        });
-    }
-    window.mudarS = (u) => { const n = prompt("Nova senha:"); if(n) { usuariosDB[u] = n; db.ref('usuarios').set(usuariosDB); } };
-    function removerMat(i) { if(confirm("Apagar?")) { estudosDB[usuarioLogado].splice(i, 1); db.ref('estudos/' + usuarioLogado).set(estudosDB[usuarioLogado]); } }
-    function removerAss(i) { if(confirm("Apagar?")) { estudosDB[usuarioLogado][matIdx].assuntos.splice(i, 1); db.ref('estudos/' + usuarioLogado).set(estudosDB[usuarioLogado]); } }
+
+        function renderTudo() {
+            const u = dados.usuarios[userLogado];
+            if(!u) return;
+
+            // 1. Saudação
+            const nomeFormatado = userLogado.charAt(0).toUpperCase() + userLogado.slice(1);
+            document.getElementById('msg-boas-vindas').innerHTML = `Olá, <span>${nomeFormatado}</span>`;
+
+            // 2. Cálculos e Alertas
+            let totalG = 0, gastosPorPessoa = {}, alertas = "";
+            const hoje = new Date();
+            (u.financas || []).forEach(g => {
+                totalG += g.valor;
+                gastosPorPessoa[g.pessoa] = (gastosPorPessoa[g.pessoa] || 0) + g.valor;
+            });
+
+            let totalF = 0;
+            (u.fixas || []).forEach(f => {
+                totalF += f.valor;
+                const dv = new Date(f.vencimento + "T12:00:00");
+                const diff = (dv - hoje) / (1000 * 60 * 60 * 24);
+                if(diff <= 10 && diff >= -1) alertas += `<li>${f.nome} (Vence ${dv.toLocaleDateString()})</li>`;
+            });
+
+            // Home UI
+            document.getElementById('h-saldo-total').innerText = `R$ ${(u.saldoMensal || 0).toFixed(2)}`;
+            const sobra = (u.saldoMensal || 0) - totalG - totalF;
+            document.getElementById('h-sobra').innerText = `R$ ${sobra.toFixed(2)}`;
+            document.getElementById('h-sobra').style.color = sobra < 0 ? 'var(--danger)' : 'var(--success)';
+            document.getElementById('alertas-vencimento').style.display = alertas ? "block" : "none";
+            document.getElementById('lista-alertas').innerHTML = alertas;
+
+            // 3. Gráficos de Cartões
+            const cG = document.getElementById('container-graficos'); cG.innerHTML = "";
+            const bancos = u.cartoes || ['Nubank'];
+            document.getElementById('f-cartao-select').innerHTML = bancos.map(b => `<option value="${b}">${b}</option>`).join('');
+            
+            bancos.forEach(b => {
+                const gastosB = (u.financas || []).filter(g => g.cartao === b);
+                const totalB = gastosB.reduce((acc, curr) => acc + curr.valor, 0);
+                if(totalB > 0) {
+                    const res = {}; gastosB.forEach(g => res[g.local] = (res[g.local] || 0) + g.valor);
+                    const div = document.createElement('div'); div.className = 'chart-item';
+                    div.innerHTML = `<h5>${b}</h5><div class="canvas-container"><canvas id="c-${b}"></canvas></div>`;
+                    cG.appendChild(div);
+                    new Chart(document.getElementById(`c-${b}`), { 
+                        type: 'doughnut', 
+                        data: { labels: Object.keys(res), datasets: [{ data: Object.values(res), backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#db2777'], borderWidth: 2 }] }, 
+                        options: { plugins: { legend: { display: false }, centerText: { text: `R$ ${totalB.toFixed(0)}` } }, cutout: '75%', maintainAspectRatio: false } 
+                    });
+                }
+            });
+
+            // 4. Resumo por Pessoa
+            document.getElementById('resumo-por-pessoa').innerHTML = Object.keys(gastosPorPessoa).map(p => `
+                <div class="pessoa-tag">${p}: <b>R$ ${gastosPorPessoa[p].toFixed(2)}</b></div>
+            `).join('');
+
+            // 5. Listas
+            document.getElementById('lista-financas').innerHTML = (u.financas || []).map((g, i) => `
+                <div class="gasto-item">
+                    <span><b>${g.local}</b><br><small>${g.cartao} • ${g.pessoa}</small></span>
+                    <div>
+                        <b>R$ ${g.valor.toFixed(2)}</b>
+                        <button class="btn-acao btn-edit" onclick="prepararEdicaoGasto(${i})">✎</button>
+                        <button class="btn-acao btn-del" onclick="delGasto(${i})">✕</button>
+                    </div>
+                </div>`).reverse().join('');
+
+            document.getElementById('lista-fixas').innerHTML = (u.fixas || []).map((f, i) => `
+                <div class="gasto-item">
+                    <span>${f.nome} <br><small>Venc: ${new Date(f.vencimento+"T12:00:00").toLocaleDateString()}</small></span>
+                    <div>
+                        <b>R$ ${f.valor.toFixed(2)}</b>
+                        <button class="btn-acao btn-edit" onclick="prepararEdicaoFixa(${i})">✎</button>
+                        <button class="btn-acao btn-del" onclick="delFixa(${i})">✕</button>
+                    </div>
+                </div>`).join('');
+
+            let totalP = 0;
+            document.getElementById('lista-poupanca').innerHTML = (u.poupanca_extrato || []).map(m => {
+                totalP += (m.tipo === 'entrada' ? m.valor : -m.valor);
+                return `<div class="gasto-item"><span>${m.tipo==='entrada'?'📥':'📤'}</span><b>R$ ${m.valor.toFixed(2)}</b></div>`;
+            }).reverse().join('');
+            document.getElementById('p-total').innerText = `R$ ${totalP.toFixed(2)}`;
+        }
     </script>
 </body>
 </html>
