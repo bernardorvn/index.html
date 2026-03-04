@@ -103,7 +103,7 @@
             <div class="nav-item" id="btn-historico" onclick="switchTab('historico')"><span class="bullet">•</span> Histórico</div>
             <div class="nav-item" id="btn-poupanca" onclick="switchTab('poupanca')"><span class="bullet">•</span> <span style="color:var(--savings)">Poupança</span></div>
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--border);">
-            <div class="nav-item" onclick="location.reload()" style="color:var(--danger)"><span class="bullet" style="color:var(--danger)">•</span> Sair</div>
+            <div class="nav-item" onclick="logout()" style="color:var(--danger)"><span class="bullet" style="color:var(--danger)">•</span> Sair</div>
         </nav>
     </aside>
 
@@ -208,6 +208,15 @@
         const db = firebase.database();
         let userLogado = "", dados = {};
 
+        // INICIALIZAÇÃO COM PERSISTÊNCIA
+        window.onload = () => {
+            const salvo = localStorage.getItem('nexus_user');
+            if(salvo) {
+                userLogado = salvo;
+                entrarNoApp();
+            }
+        };
+
         // AUXILIARES
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('sidebar-overlay').classList.toggle('active'); }
         function toggleAuth(isCad) { document.getElementById('box-login').style.display = isCad ? 'none' : 'block'; document.getElementById('box-cad').style.display = isCad ? 'block' : 'none'; }
@@ -221,12 +230,22 @@
                 dados = snap.val() || {};
                 if (dados.usuarios && dados.usuarios[u] && dados.usuarios[u].senha === s) {
                     userLogado = u;
-                    document.getElementById('tela-auth').style.display = "none";
-                    document.getElementById('app-header').style.display = "flex";
-                    document.getElementById('main-app').style.display = "block";
-                    db.ref('/').on('value', s => { dados = s.val(); renderTudo(); });
+                    localStorage.setItem('nexus_user', u);
+                    entrarNoApp();
                 } else { alert("Usuário ou senha incorretos!"); }
             });
+        }
+
+        function entrarNoApp() {
+            document.getElementById('tela-auth').style.display = "none";
+            document.getElementById('app-header').style.display = "flex";
+            document.getElementById('main-app').style.display = "block";
+            db.ref('/').on('value', s => { dados = s.val(); renderTudo(); });
+        }
+
+        function logout() {
+            localStorage.removeItem('nexus_user');
+            location.reload();
         }
 
         function registrar() {
@@ -252,7 +271,18 @@
             if(isNaN(total)) return;
             const parc = document.getElementById('f-is-parcelado').checked ? (parseInt(document.getElementById('f-parcelas').value) || 1) : 1;
             let list = dados.usuarios[userLogado].financas || [];
-            const obj = { local: document.getElementById('f-local').value || "Gasto", valor: total / parc, valorTotal: total, parcelas: parc, pessoa: document.getElementById('f-pessoa').value || "Eu", cartao: document.getElementById('f-cartao-select').value, data: document.getElementById('f-data').value || new Date().toISOString().split('T')[0] };
+            
+            const obj = { 
+                local: document.getElementById('f-local').value || "Gasto", 
+                valor: total / parc, 
+                valorTotal: total, 
+                parcelas: parc, 
+                parcAtual: 1, // Marcador de parcela
+                pessoa: document.getElementById('f-pessoa').value || "Eu", 
+                cartao: document.getElementById('f-cartao-select').value, 
+                data: document.getElementById('f-data').value || new Date().toISOString().split('T')[0] 
+            };
+            
             if(idx === -1) list.push(obj); else list[idx] = obj;
             db.ref(`usuarios/${userLogado}/financas`).set(list).then(() => {
                 document.getElementById('f-local').value = ""; document.getElementById('f-valor').value = ""; document.getElementById('edit-index-gasto').value = "-1"; document.getElementById('f-is-parcelado').checked = false; toggleParcelas();
@@ -305,17 +335,29 @@
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
-        // HISTÓRICO
+        // HISTÓRICO E LÓGICA DE PARCELAS
         function salvarNoHistorico() {
             const u = dados.usuarios[userLogado];
             if(!(u.financas || u.fixas)) return alert("Nada para salvar!");
             const mesNome = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
             if(!confirm(`Deseja fechar o mês de ${mesNome}? Isso limpará suas listas atuais.`)) return;
+            
             const backup = { mes: mesNome, dataRegistro: new Date().toISOString(), financas: u.financas || [], fixas: u.fixas || [], saldoMensal: u.saldoMensal || 0 };
+            
+            // Lógica para levar parcelas adiante
+            let novasFinancas = [];
+            (u.financas || []).forEach(g => {
+                if(g.parcelas > 1 && (g.parcAtual || 1) < g.parcelas) {
+                    let prox = {...g};
+                    prox.parcAtual = (g.parcAtual || 1) + 1;
+                    novasFinancas.push(prox);
+                }
+            });
+
             db.ref(`usuarios/${userLogado}/historico`).push(backup).then(() => {
-                db.ref(`usuarios/${userLogado}/financas`).set([]);
+                db.ref(`usuarios/${userLogado}/financas`).set(novasFinancas);
                 db.ref(`usuarios/${userLogado}/fixas`).set([]);
-                alert("Mês salvo no histórico!");
+                alert("Mês salvo! Parcelas restantes foram movidas para o novo mês.");
             });
         }
 
@@ -339,7 +381,7 @@
             (mes.financas || []).forEach(g => {
                 totalG += g.valor;
                 gPessoa[g.pessoa] = (gPessoa[g.pessoa] || 0) + g.valor;
-                html += `<div class="gasto-item"><span>${g.local}<br><small>${g.cartao} • ${g.pessoa}</small></span><b>R$ ${g.valor.toFixed(2)}</b></div>`;
+                html += `<div class="gasto-item"><span>${g.local} ${g.parcelas>1?`(${g.parcAtual||1}/${g.parcelas})`:''}<br><small>${g.cartao} • ${g.pessoa}</small></span><b>R$ ${g.valor.toFixed(2)}</b></div>`;
             });
             html += `<h4 style="margin-top:20px">Fixas</h4>`;
             (mes.fixas || []).forEach(f => {
@@ -405,7 +447,7 @@
                 const dt = new Date(g.data + "T12:00:00").toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
                 if(dt !== dataAt) { htmlG += `<div class="data-separador">${dt}</div>`; dataAt = dt; }
                 const realIdx = u.financas.indexOf(g);
-                htmlG += `<div class="gasto-item"><span><b>${g.local}</b><br><small>${g.cartao} • ${g.pessoa} ${g.parcelas>1?`(${g.parcelas}x)`:''}</small></span><div style="text-align:right"><b>R$ ${g.valor.toFixed(2)}</b><br><button class="btn-acao" style="color:var(--primary)" onclick="editGasto(${realIdx})">✎</button><button class="btn-acao" style="color:var(--danger)" onclick="delGasto(${realIdx})">✕</button></div></div>`;
+                htmlG += `<div class="gasto-item"><span><b>${g.local}</b> ${g.parcelas>1?`<small>(${g.parcAtual||1}/${g.parcelas})</small>`:''}<br><small>${g.cartao} • ${g.pessoa}</small></span><div style="text-align:right"><b>R$ ${g.valor.toFixed(2)}</b><br><button class="btn-acao" style="color:var(--primary)" onclick="editGasto(${realIdx})">✎</button><button class="btn-acao" style="color:var(--danger)" onclick="delGasto(${realIdx})">✕</button></div></div>`;
             });
             document.getElementById('lista-financas').innerHTML = htmlG;
 
