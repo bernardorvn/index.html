@@ -172,7 +172,7 @@
                     <div class="parcela-box" id="box-parcelas"><input type="number" id="f-parcelas" value="1" min="1" placeholder="Nº de parcelas"></div>
                     <div style="display:flex; gap: 8px;"><select id="f-cartao-select" style="flex: 1;"></select><button class="botao" style="width: 45px;" onclick="novoBanco()">+</button></div>
                     <input type="text" id="f-pessoa" placeholder="Quem comprou? (Opcional)">
-                    <input type="date" id="f-data" placeholder="Data">
+                    <input type="date" id="f-data" >
                     <button class="botao" onclick="addGasto()">Salvar Compra</button>
                 </div>
                 <div class="search-container">
@@ -235,7 +235,7 @@
         </div>
     </main>
 
-    <script>
+   <script>
     // Configuração do Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAgUHntWb0V0l6MoHJVxDMs5sstPSaH-lc",
